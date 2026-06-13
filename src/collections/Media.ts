@@ -1,12 +1,14 @@
 import type { CollectionConfig } from "payload";
 
+import { getMediaStaticDir } from "../lib/media";
+
 export const Media: CollectionConfig = {
   slug: "media",
   access: {
     read: () => true,
   },
   upload: {
-    staticDir: "../public/media",
+    staticDir: getMediaStaticDir(),
     mimeTypes: ["image/*", "video/mp4", "video/webm", "video/quicktime"],
     imageSizes: [
       {
