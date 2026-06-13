@@ -10,13 +10,16 @@ import { Media } from "./collections/Media";
 import { Products } from "./collections/Products";
 import { Users } from "./collections/Users";
 import { SiteSettings } from "./globals/SiteSettings";
+import { getDatabaseUri, getServerURL } from "./lib/database";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
-const usePostgres = Boolean(process.env.DATABASE_URI);
+const databaseUri = getDatabaseUri();
+const usePostgres = Boolean(databaseUri);
 
 export default buildConfig({
+  serverURL: getServerURL(),
   admin: {
     user: Users.slug,
     meta: {
@@ -33,13 +36,18 @@ export default buildConfig({
   db: usePostgres
     ? postgresAdapter({
         pool: {
-          connectionString: process.env.DATABASE_URI,
+          connectionString: databaseUri,
+          max: 1,
+          idleTimeoutMillis: 5000,
+          connectionTimeoutMillis: 15000,
         },
+        push: true,
       })
     : sqliteAdapter({
         client: {
           url: `file:${path.resolve(dirname, "../data.db")}`,
         },
+        push: true,
       }),
   sharp,
   upload: {
@@ -52,17 +60,21 @@ export default buildConfig({
     const password = process.env.ADMIN_PASSWORD;
     if (!email || !password) return;
 
-    const existing = await payload.find({
-      collection: "users",
-      where: { email: { equals: email } },
-      limit: 1,
-    });
-
-    if (existing.totalDocs === 0) {
-      await payload.create({
+    try {
+      const existing = await payload.find({
         collection: "users",
-        data: { email, password },
+        where: { email: { equals: email } },
+        limit: 1,
       });
+
+      if (existing.totalDocs === 0) {
+        await payload.create({
+          collection: "users",
+          data: { email, password },
+        });
+      }
+    } catch (error) {
+      console.error("Admin bootstrap skipped:", error);
     }
   },
 });
