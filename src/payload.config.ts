@@ -9,13 +9,24 @@ import { Media } from "./collections/Media";
 import { Products } from "./collections/Products";
 import { Users } from "./collections/Users";
 import { SiteSettings } from "./globals/SiteSettings";
-import { getDatabaseUri, getServerURL } from "./lib/database";
+import {
+  getDatabaseUri,
+  getServerURL,
+  isNetlifyRuntime,
+} from "./lib/database";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 const databaseUri = getDatabaseUri();
-const usePostgres = Boolean(databaseUri);
+const usePostgres = Boolean(databaseUri) || isNetlifyRuntime();
+const pushSchema = process.env.PAYLOAD_PUSH === "true";
+
+if (isNetlifyRuntime() && !databaseUri) {
+  console.error(
+    "DATABASE_URI is missing on Netlify. Add it in Site configuration → Environment variables (scope: All).",
+  );
+}
 
 export default buildConfig({
   serverURL: getServerURL(),
@@ -43,10 +54,10 @@ export default buildConfig({
         pool: {
           connectionString: databaseUri,
           max: 1,
-          idleTimeoutMillis: 5000,
-          connectionTimeoutMillis: 15000,
+          idleTimeoutMillis: 0,
+          connectionTimeoutMillis: 20000,
         },
-        push: true,
+        push: pushSchema,
       })
     : sqliteAdapter({
         client: {

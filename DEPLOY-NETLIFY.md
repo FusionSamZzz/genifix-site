@@ -50,7 +50,7 @@ git push -u origin main
 3. Выберите **GitHub** и разрешите доступ  
 4. Выберите репозиторий `genifix-site`  
 5. Netlify сам подхватит настройки из `netlify.toml`:
-   - Build command: `npm run build`
+   - Build command: `PAYLOAD_PUSH=true npm run build`
    - Publish: `.next` (через плагин Next.js)
 
 **Пока не нажимайте Deploy** — сначала добавьте переменные.
@@ -69,9 +69,16 @@ git push -u origin main
 | `PAYLOAD_SECRET` | Любая длинная случайная строка | `mi-secreto-genifix-2026-muy-largo` |
 | `ADMIN_EMAIL` | Ваш email админки | `fusionsamz@gmail.com` |
 | `ADMIN_PASSWORD` | Ваш пароль админки | `onyxworld` |
-| `NEXT_PUBLIC_SITE_URL` | URL сайта на Netlify | `https://genifix-xxx.netlify.app` |
+| `NEXT_PUBLIC_SITE_URL` | URL сайта на Netlify | `https://sunny-baklava-9acf08.netlify.app` |
 
 > **NEXT_PUBLIC_SITE_URL** — после первого деплоя Netlify покажет адрес сайта (например `https://random-name-123.netlify.app`). Его и вставьте. Потом можно обновить, если смените домен.
+
+### ⚠️ Область действия переменных (критично для /admin)
+
+При добавлении **каждой** переменной Netlify спрашивает **Scopes** (область):
+
+- Выберите **All scopes** (или **All** — «Все»), **не** только «Builds».
+- Если `DATABASE_URI` доступен только при сборке, главная страница может открываться, а **`/admin` и `/api/*` дадут Internal Server Error**.
 
 Нажмите **Save** и запустите **Deploy site** (или **Trigger deploy**).
 
@@ -119,6 +126,7 @@ Netlify → **Domain management** → **Add custom domain**
 | Проблема | Решение |
 |----------|---------|
 | Build failed | Проверьте, что все 5 переменных окружения добавлены |
+| `/admin` — Internal Server Error | У `DATABASE_URI` scope должен быть **All**, не только Builds. Пересоберите сайт |
 | Admin не открывается | Убедитесь, что `PAYLOAD_SECRET` задан |
 | Не могу войти | Проверьте `ADMIN_EMAIL` и `ADMIN_PASSWORD` в Netlify |
 | Фото/видео пропали после redeploy | На Netlify диск временный — для стабильности позже подключите Cloudinary/S3 |
