@@ -80,8 +80,8 @@ export const FALLBACK_PRODUCTS: FallbackProduct[] = [
     price: 0,
     currency: "ARS",
     description:
-      "Stripping de 12 mm para tableros estándar. Fresado CNC completo, montaje con una sola herramienta.",
-    imageUrl: "/images/hero-genifix.svg",
+      "Stripping para tableros de 12 mm. Mecanizado completo en el CNC — sin taladro de canto ni espigas. Montaje con una sola llave Allen.",
+    imageUrl: "/images/hero-genifix-bg.png",
     inStock: true,
     featured: true,
   },
@@ -93,8 +93,8 @@ export const FALLBACK_PRODUCTS: FallbackProduct[] = [
     price: 0,
     currency: "ARS",
     description:
-      "Mismo cuerpo que la versión 12 mm. Difiere únicamente en el perno incluido.",
-    imageUrl: "/images/hero-genifix.svg",
+      "Mismo cuerpo que la versión 12 mm. Incluye perno para tableros de 8 mm. CNC, un solo tool, sin espigas.",
+    imageUrl: "/images/hero-genifix-bg.png",
     inStock: true,
     featured: true,
   },

@@ -11,6 +11,16 @@ export function whatsappUrl(message?: string) {
   return `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(message ?? SITE.whatsappMessage)}`;
 }
 
+export function normalizeImageUrl(url: string): string {
+  if (url.startsWith("/")) return url;
+
+  try {
+    const parsed = new URL(url);
+    return `${parsed.pathname}${parsed.search}`;
+  } catch {
+    return url;
+  }
+}
 export function formatPrice(price: number, currency: "ARS" | "USD") {
   if (price <= 0) return "Consultar precio";
 

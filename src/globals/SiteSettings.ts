@@ -5,12 +5,28 @@ export const SiteSettings: GlobalConfig = {
   label: "Configuración del sitio",
   admin: {
     description:
-      "Video de presentación en la sección Productos y otros ajustes globales.",
+      "Imagen del inicio (hero), video en Productos y otros ajustes globales.",
   },
   access: {
     read: () => true,
   },
   fields: [
+    {
+      type: "collapsible",
+      label: "Imagen de inicio (Hero)",
+      fields: [
+        {
+          name: "heroImage",
+          type: "upload",
+          relationTo: "media",
+          label: "Foto de fondo",
+          admin: {
+            description:
+              "Suba una foto en Media (JPG/PNG/WebP) y selecciónela aquí. Se muestra detrás del texto en la página principal.",
+          },
+        },
+      ],
+    },
     {
       type: "collapsible",
       label: "Video de presentación (Productos)",
@@ -34,7 +50,8 @@ export const SiteSettings: GlobalConfig = {
           relationTo: "media",
           label: "Archivo de video (MP4, WebM)",
           admin: {
-            description: "Suba el video en Media (tipo video) y selecciónelo aquí.",
+            description:
+              "El bloque de video aparece en Productos solo cuando sube un archivo aquí.",
           },
         },
       ],

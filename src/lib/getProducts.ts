@@ -2,6 +2,7 @@ import config from "@payload-config";
 import { getPayload } from "payload";
 
 import { FALLBACK_PRODUCTS, type FallbackProduct } from "./constants";
+import { normalizeImageUrl } from "./utils";
 
 export type ProductItem = FallbackProduct;
 
@@ -29,7 +30,7 @@ function mapPayloadProduct(doc: Record<string, unknown>): ProductItem {
     price: Number(doc.price || 0),
     currency: (doc.currency as "ARS" | "USD") || "ARS",
     description: String(doc.description || ""),
-    imageUrl: image,
+    imageUrl: normalizeImageUrl(image),
     inStock: Boolean(doc.inStock),
     featured: Boolean(doc.featured),
   };

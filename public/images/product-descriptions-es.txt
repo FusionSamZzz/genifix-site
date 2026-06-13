@@ -1,0 +1,20 @@
+GeniFix 12 mm
+---
+Nombre: GeniFix 12 mm
+SKU: GF-12
+Descripción corta:
+Strippping para tableros de 12 mm. Mecanizado completo en el CNC — sin taladro de canto ni espigas. Montaje con una sola llave Allen, rápido e intuitivo.
+
+Descripción (tarjeta):
+GeniFix 12 mm unió diseño limpio y montaje simple: todo el mecanizado se hace en el fresador. Insertá, apretá con la llave Allen y listo. Ideal para producción en nesting y armado en taller o en casa.
+
+
+GeniFix 8 mm
+---
+Nombre: GeniFix 8 mm
+SKU: GF-08
+Descripción corta:
+Mismo cuerpo que la versión 12 mm. Incluye perno para tableros de 8 mm. CNC, un solo tool, sin espigas.
+
+Descripción (tarjeta):
+GeniFix 8 mm comparte el mismo cuerpo plástico que el modelo 12 mm; solo cambia el perno. La misma lógica: mecanizado en el CNC, montaje con una herramienta, conexión oculta y firme.

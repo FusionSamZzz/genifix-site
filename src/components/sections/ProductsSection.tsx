@@ -25,7 +25,7 @@ export function ProductsSection({ products, presentationVideo }: ProductsSection
           <SectionHeading
             eyebrow="Productos"
             title="GeniFix 8 mm y 12 mm"
-            description="Mismo cuerpo de plástico, diferente perno. Fotos, precios y video se gestionan desde Admin Panel."
+            description="Mismo cuerpo de plástico, diferente perno."
           />
         </Reveal>
 
@@ -96,18 +96,7 @@ export function ProductsSection({ products, presentationVideo }: ProductsSection
           ))}
         </div>
 
-        {presentationVideo ? <ProductVideo video={presentationVideo} /> : (
-          <Reveal delay={0.1}>
-            <div className="mt-20 rounded-[28px] border border-dashed border-black/10 bg-white/60 px-6 py-14 text-center">
-              <p className="text-lg font-medium text-[var(--color-text)]">
-                Video de presentación
-              </p>
-              <p className="mt-2 text-sm text-[var(--color-muted)]">
-                Suba un video en Admin Panel → Configuración del sitio
-              </p>
-            </div>
-          </Reveal>
-        )}
+        {presentationVideo ? <ProductVideo video={presentationVideo} /> : null}
       </div>
 
       {active ? (

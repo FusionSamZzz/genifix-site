@@ -9,7 +9,11 @@ import { Reveal } from "@/components/ui/Reveal";
 import { BENEFITS, SITE } from "@/lib/constants";
 import { whatsappUrl } from "@/lib/utils";
 
-export function Hero() {
+type HeroProps = {
+  heroImageUrl?: string | null;
+};
+
+export function Hero({ heroImageUrl }: HeroProps) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -17,6 +21,8 @@ export function Hero() {
   });
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "24%"]);
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0.35]);
+
+  const backgroundSrc = heroImageUrl || "/images/hero-genifix-bg.png";
 
   return (
     <section
@@ -26,7 +32,7 @@ export function Hero() {
     >
       <motion.div style={{ y, opacity }} className="absolute inset-0">
         <Image
-          src="/images/hero-genifix.svg"
+          src={backgroundSrc}
           alt="GeniFix furniture connector"
           fill
           priority

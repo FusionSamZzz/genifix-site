@@ -3,18 +3,18 @@ import { ContactsSection } from "@/components/sections/ContactsSection";
 import { DocumentationSection } from "@/components/sections/DocumentationSection";
 import { Hero } from "@/components/sections/Hero";
 import { ProductsSection } from "@/components/sections/ProductsSection";
-import { getPresentationVideo } from "@/lib/getSiteSettings";
+import { getSiteSettings } from "@/lib/getSiteSettings";
 import { getProducts } from "@/lib/getProducts";
 
 export default async function HomePage() {
-  const [products, presentationVideo] = await Promise.all([
+  const [{ heroImageUrl, presentationVideo }, products] = await Promise.all([
+    getSiteSettings(),
     getProducts(),
-    getPresentationVideo(),
   ]);
 
   return (
     <>
-      <Hero />
+      <Hero heroImageUrl={heroImageUrl} />
       <ProductsSection products={products} presentationVideo={presentationVideo} />
       <AboutSection />
       <ContactsSection />
