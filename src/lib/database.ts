@@ -19,12 +19,15 @@ export function getDatabaseUri(): string | undefined {
 }
 
 export function getServerURL(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.URL ||
-    process.env.DEPLOY_PRIME_URL ||
-    "http://localhost:3000"
-  ).replace(/\/$/, "");
+  const netlifyUrl = process.env.URL || process.env.DEPLOY_PRIME_URL;
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+
+  const url =
+    isNetlifyRuntime() && netlifyUrl
+      ? netlifyUrl
+      : configured || netlifyUrl || "http://localhost:3000";
+
+  return url.replace(/\/$/, "");
 }
 
 export function isNetlifyRuntime(): boolean {
