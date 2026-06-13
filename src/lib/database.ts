@@ -5,16 +5,12 @@ export function getDatabaseUri(): string | undefined {
   const uri = process.env.DATABASE_URI || process.env.DATABASE_URL;
   if (!uri) return undefined;
 
-  const isServerless = Boolean(
-    process.env.NETLIFY ||
-      process.env.AWS_LAMBDA_FUNCTION_NAME ||
-      process.env.NETLIFY_DEV,
-  );
-
-  if (!isServerless) return uri;
+  // Pooler only in deployed serverless functions — not during Netlify build
+  // (schema push/migrations need Neon's direct connection).
+  const usePooler = Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
+  if (!usePooler) return uri;
   if (!uri.includes(".neon.tech") || uri.includes("-pooler.")) return uri;
 
-  // Neon pooler is required for Netlify serverless functions.
   return uri.replace(/(@ep-[^.]+)(\.)/, "$1-pooler$2");
 }
 

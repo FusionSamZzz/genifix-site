@@ -126,7 +126,7 @@ Netlify → **Domain management** → **Add custom domain**
 | Проблема | Решение |
 |----------|---------|
 | Build failed | Проверьте, что все 5 переменных окружения добавлены |
-| `/admin` — Internal Server Error | У `DATABASE_URI` scope должен быть **All**, не только Builds. Пересоберите сайт |
+| `/admin` — Internal Server Error | У `DATABASE_URI` scope должен быть **All**. `NEXT_PUBLIC_SITE_URL` должен совпадать с URL сайта (например `https://sunny-baklava-9acf08.netlify.app`). Откройте `/api/health` для диагностики |
 | Admin не открывается | Убедитесь, что `PAYLOAD_SECRET` задан |
 | Не могу войти | Проверьте `ADMIN_EMAIL` и `ADMIN_PASSWORD` в Netlify |
 | Фото/видео пропали после redeploy | На Netlify диск временный — для стабильности позже подключите Cloudinary/S3 |
