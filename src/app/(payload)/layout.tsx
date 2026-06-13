@@ -1,12 +1,32 @@
-import type { Metadata } from "next";
+import config from "@payload-config";
+import "@payloadcms/next/css";
+import { RootLayout, handleServerFunctions } from "@payloadcms/next/layouts";
+import type { ServerFunctionClient } from "payload";
 import type { ReactNode } from "react";
 
-import "@payloadcms/next/css";
+import { importMap } from "./admin/importMap.js";
 
-export const metadata: Metadata = {
-  robots: "noindex, nofollow",
+type Args = {
+  children: ReactNode;
 };
 
-export default function PayloadLayout({ children }: { children: ReactNode }) {
-  return children;
+const serverFunction: ServerFunctionClient = async function (args) {
+  "use server";
+  return handleServerFunctions({
+    ...args,
+    config,
+    importMap,
+  });
+};
+
+export default function PayloadLayout({ children }: Args) {
+  return (
+    <RootLayout
+      config={config}
+      importMap={importMap}
+      serverFunction={serverFunction}
+    >
+      {children}
+    </RootLayout>
+  );
 }

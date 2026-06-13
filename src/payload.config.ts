@@ -25,6 +25,13 @@ export default buildConfig({
     meta: {
       titleSuffix: " — GeniFix Admin",
     },
+    importMap: {
+      autoGenerate: true,
+      importMapFile: path.resolve(
+        dirname,
+        "app/(payload)/admin/importMap.js",
+      ),
+    },
   },
   collections: [Users, Media, Products],
   globals: [SiteSettings],
