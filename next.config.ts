@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    turbopackServerFastRefresh: false,
+  },
 };
 
-export default withPayload(nextConfig);
+export default withPayload(nextConfig, { devBundleServerPackages: true });
