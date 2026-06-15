@@ -1,6 +1,7 @@
 import config from "@payload-config";
 import { getPayload } from "payload";
 
+import { isCiBuild } from "./database";
 import { normalizeImageUrl } from "./utils";
 
 export type PresentationVideo = {
@@ -22,6 +23,10 @@ export async function getSiteSettings(): Promise<{
   heroImageUrl: string | null;
   presentationVideo: PresentationVideo | null;
 }> {
+  if (isCiBuild()) {
+    return { heroImageUrl: null, presentationVideo: null };
+  }
+
   try {
     const payload = await getPayload({ config });
     const settings = await payload.findGlobal({

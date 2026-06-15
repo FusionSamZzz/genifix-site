@@ -2,6 +2,7 @@ import config from "@payload-config";
 import { getPayload } from "payload";
 
 import { FALLBACK_PRODUCTS, type FallbackProduct } from "./constants";
+import { isCiBuild } from "./database";
 import { normalizeImageUrl } from "./utils";
 
 export type ProductItem = FallbackProduct;
@@ -37,6 +38,8 @@ function mapPayloadProduct(doc: Record<string, unknown>): ProductItem {
 }
 
 export async function getProducts(): Promise<ProductItem[]> {
+  if (isCiBuild()) return FALLBACK_PRODUCTS;
+
   try {
     const payload = await getPayload({ config });
     const { docs } = await payload.find({
