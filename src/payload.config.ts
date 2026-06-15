@@ -55,7 +55,7 @@ export default buildConfig({
           connectionString: databaseUri,
           max: 1,
           idleTimeoutMillis: 0,
-          connectionTimeoutMillis: 60000,
+          connectionTimeoutMillis: 15000,
         },
         push: pushSchema,
       })
