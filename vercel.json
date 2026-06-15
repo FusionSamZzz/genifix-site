@@ -2,9 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "npm install --include=optional",
-  "build": {
-    "env": {
-      "PAYLOAD_PUSH": "true"
-    }
-  }
+  "buildCommand": "PAYLOAD_PUSH=true npm run build"
 }
