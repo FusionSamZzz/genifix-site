@@ -33,6 +33,15 @@ export function getHostingPlatform(): "vercel" | "netlify" | "local" {
   return "local";
 }
 
+/** Vercel/Netlify production build — not a live serverless request. */
+export function isCiBuild(): boolean {
+  return (
+    process.env.CI === "1" ||
+    process.env.CI === "true" ||
+    process.env.NEXT_PHASE === "phase-production-build"
+  );
+}
+
 export function getServerURL(): string {
   const vercelHost =
     process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;

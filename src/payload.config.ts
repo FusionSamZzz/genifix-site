@@ -12,6 +12,7 @@ import { SiteSettings } from "./globals/SiteSettings";
 import {
   getDatabaseUri,
   getServerURL,
+  isCiBuild,
   isServerlessHosted,
 } from "./lib/database";
 
@@ -55,7 +56,7 @@ export default buildConfig({
           connectionString: databaseUri,
           max: 1,
           idleTimeoutMillis: 0,
-          connectionTimeoutMillis: 20000,
+          connectionTimeoutMillis: 60000,
         },
         push: pushSchema,
       })
@@ -72,6 +73,9 @@ export default buildConfig({
     },
   },
   onInit: async (payload) => {
+    // Neon may be cold during Vercel build — create admin on first live request.
+    if (isCiBuild()) return;
+
     const email = process.env.ADMIN_EMAIL;
     const password = process.env.ADMIN_PASSWORD;
     if (!email || !password) return;
