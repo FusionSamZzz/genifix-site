@@ -1,6 +1,3 @@
-import config from "@payload-config";
-import { getPayload } from "payload";
-
 import {
   getDatabaseUri,
   getHostingPlatform,
@@ -12,44 +9,49 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const databaseUri = getDatabaseUri();
+  const platform = getHostingPlatform();
+  const vercelProject = process.env.VERCEL_URL;
+
+  const env = {
+    databaseUri: Boolean(databaseUri),
+    payloadSecret: Boolean(process.env.PAYLOAD_SECRET),
+    adminEmail: Boolean(process.env.ADMIN_EMAIL),
+    adminPassword: Boolean(process.env.ADMIN_PASSWORD),
+    siteUrl: Boolean(process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL),
+  };
+
+  if (!databaseUri && isServerlessHosted()) {
+    return Response.json({
+      ok: false,
+      runtime: { platform, vercelProject, nodeEnv: process.env.NODE_ENV },
+      env,
+      serverURL: getServerURL(),
+      hint:
+        "DATABASE_URI не задан в Vercel. Откройте проект genifix-site → Settings → Environment Variables и добавьте все 4–5 переменных. Затем Redeploy.",
+    });
+  }
+
   let payloadOk = false;
   let payloadError: string | undefined;
 
-  if (databaseUri || !isServerlessHosted()) {
-    try {
-      const payload = await getPayload({ config });
-      const users = await payload.find({ collection: "users", limit: 1 });
-      payloadOk = true;
-      payloadError = users.totalDocs === 0 ? "no admin user yet" : undefined;
-    } catch (error) {
-      payloadError =
-        error instanceof Error ? error.message : "payload init failed";
-    }
+  try {
+    const { default: config } = await import("@payload-config");
+    const { getPayload } = await import("payload");
+    const payload = await getPayload({ config });
+    const users = await payload.find({ collection: "users", limit: 1 });
+    payloadOk = true;
+    payloadError = users.totalDocs === 0 ? "no admin user yet — open /admin once" : undefined;
+  } catch (error) {
+    payloadError =
+      error instanceof Error ? error.message : "payload init failed";
   }
-
-  const serverURL = getServerURL();
-  const platform = getHostingPlatform();
 
   return Response.json({
     ok: payloadOk,
-    runtime: {
-      platform,
-      nodeEnv: process.env.NODE_ENV,
-    },
-    env: {
-      databaseUri: Boolean(databaseUri),
-      payloadSecret: Boolean(process.env.PAYLOAD_SECRET),
-      adminEmail: Boolean(process.env.ADMIN_EMAIL),
-      adminPassword: Boolean(process.env.ADMIN_PASSWORD),
-      siteUrl: Boolean(process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL),
-    },
-    serverURL,
-    payload: {
-      ok: payloadOk,
-      error: payloadError,
-    },
-    hint: !databaseUri && isServerlessHosted()
-      ? "DATABASE_URI missing. Add it in Vercel → Settings → Environment Variables."
-      : payloadError,
+    runtime: { platform, vercelProject, nodeEnv: process.env.NODE_ENV },
+    env,
+    serverURL: getServerURL(),
+    payload: { ok: payloadOk, error: payloadError },
+    hint: payloadError,
   });
 }

@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 
 import { importMap } from "./admin/importMap.js";
 
+export const maxDuration = 60;
+
 type Args = {
   children: ReactNode;
 };

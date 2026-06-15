@@ -20,12 +20,11 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 const databaseUri = getDatabaseUri();
-const usePostgres = Boolean(databaseUri) || isServerlessHosted();
 const pushSchema = process.env.PAYLOAD_PUSH === "true";
 
 if (isServerlessHosted() && !databaseUri) {
   console.error(
-    "DATABASE_URI is missing in production. Add it in Vercel/Netlify environment variables.",
+    "DATABASE_URI is missing in production. Add it in Vercel → Project → Settings → Environment Variables.",
   );
 }
 
@@ -50,7 +49,7 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },
-  db: usePostgres
+  db: databaseUri
     ? postgresAdapter({
         pool: {
           connectionString: databaseUri,

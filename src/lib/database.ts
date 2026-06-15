@@ -1,13 +1,26 @@
 /**
  * Database and hosting helpers for local dev, Vercel, Netlify, and Neon.
  */
+
+/** Vercel/Netlify production build — not a live serverless request. */
+export function isCiBuild(): boolean {
+  return (
+    process.env.CI === "1" ||
+    process.env.CI === "true" ||
+    process.env.NEXT_PHASE === "phase-production-build"
+  );
+}
+
 export function getDatabaseUri(): string | undefined {
   const uri = process.env.DATABASE_URI || process.env.DATABASE_URL;
   if (!uri) return undefined;
 
-  // Pooler only inside serverless function invocations (not during CI/build).
-  const usePooler = Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
-  if (!usePooler) return uri;
+  // Direct connection for build/migrations; pooler for live serverless requests.
+  const isLiveServerless =
+    Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
+    (Boolean(process.env.VERCEL) && !isCiBuild());
+
+  if (!isLiveServerless) return uri;
   if (!uri.includes(".neon.tech") || uri.includes("-pooler.")) return uri;
 
   return uri.replace(/(@ep-[^.]+)(\.)/, "$1-pooler$2");
@@ -31,15 +44,6 @@ export function getHostingPlatform(): "vercel" | "netlify" | "local" {
   if (process.env.VERCEL) return "vercel";
   if (process.env.NETLIFY) return "netlify";
   return "local";
-}
-
-/** Vercel/Netlify production build — not a live serverless request. */
-export function isCiBuild(): boolean {
-  return (
-    process.env.CI === "1" ||
-    process.env.CI === "true" ||
-    process.env.NEXT_PHASE === "phase-production-build"
-  );
 }
 
 export function getServerURL(): string {
