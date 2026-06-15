@@ -7,7 +7,7 @@ Landing premium en español para la strippping GeniFix (8 mm / 12 mm), con panel
 - **Next.js 16** + TypeScript + Tailwind CSS 4
 - **Payload CMS 3** — admin en `/admin`
 - **Framer Motion** + **Lenis** — animaciones y scroll suave
-- **Netlify** — deploy (Neon PostgreSQL en producción)
+- **Vercel** — deploy (Neon PostgreSQL en producción). Guía: [`DEPLOY-VERCEL.md`](./DEPLOY-VERCEL.md)
 
 ## Desarrollo local
 
@@ -33,13 +33,13 @@ En local ya están en `.env.local`. El usuario se crea solo al arrancar el servi
 2. **Globals → Configuración del sitio** → elegir video y título  
 3. Aparece al final de la sección **Productos**
 
-## Deploy en Netlify
+## Deploy en Vercel (gratis)
 
-**Guía paso a paso (ruso):** ver [`DEPLOY-NETLIFY.md`](./DEPLOY-NETLIFY.md)
+**Guía paso a paso (ruso):** ver [`DEPLOY-VERCEL.md`](./DEPLOY-VERCEL.md)
 
 ### Imágenes en producción
 
-Las fotos subidas se guardan en `public/media`. En Netlify el disco es efímero: tras un redeploy pueden perderse. Para producción estable, conecte S3 o Cloudinary al adapter de Payload.
+Las fotos subidas se guardan en disco temporal en serverless. Tras un redeploy pueden perderse. Para producción estable, conecte S3 o Cloudinary.
 
 ## Scripts
 
@@ -47,7 +47,7 @@ Las fotos subidas se guardan en `public/media`. En Netlify el disco es efímero:
 |---------|-------------|
 | `npm run dev` | Servidor de desarrollo |
 | `npm run build` | Build de producción |
-| `npm run lint` | ESLint |
+| `npm run verify` | Typecheck + build (antes de deploy) |
 | `npm run typecheck` | Verificación TypeScript |
 
 ## Secciones del sitio

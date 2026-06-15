@@ -1,14 +1,14 @@
 import path from "path";
 import { fileURLToPath } from "url";
 
-import { isNetlifyRuntime } from "./database";
+import { isServerlessHosted } from "./database";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
-/** Writable on Netlify serverless; local uploads stay in public/media. */
+/** Writable on Vercel/Netlify serverless; local uploads stay in public/media. */
 export function getMediaStaticDir(): string {
-  if (isNetlifyRuntime()) {
+  if (isServerlessHosted()) {
     return "/tmp/genifix-media";
   }
 

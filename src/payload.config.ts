@@ -12,19 +12,19 @@ import { SiteSettings } from "./globals/SiteSettings";
 import {
   getDatabaseUri,
   getServerURL,
-  isNetlifyRuntime,
+  isServerlessHosted,
 } from "./lib/database";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 const databaseUri = getDatabaseUri();
-const usePostgres = Boolean(databaseUri) || isNetlifyRuntime();
+const usePostgres = Boolean(databaseUri) || isServerlessHosted();
 const pushSchema = process.env.PAYLOAD_PUSH === "true";
 
-if (isNetlifyRuntime() && !databaseUri) {
+if (isServerlessHosted() && !databaseUri) {
   console.error(
-    "DATABASE_URI is missing on Netlify. Add it in Site configuration → Environment variables (scope: All).",
+    "DATABASE_URI is missing in production. Add it in Vercel/Netlify environment variables.",
   );
 }
 
