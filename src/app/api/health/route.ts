@@ -47,28 +47,26 @@ export async function GET() {
     });
   }
 
-  let payloadOk = false;
-  let payloadError: string | undefined;
-
+  let userCount: number | undefined;
   try {
-    const { default: config } = await import("@payload-config");
-    const { getPayload } = await import("payload");
-    const payload = await getPayload({ config });
-    const users = await payload.find({ collection: "users", limit: 1 });
-    payloadOk = true;
-    payloadError = users.totalDocs === 0 ? "no admin user yet — open /admin once" : undefined;
-  } catch (error) {
-    payloadError =
-      error instanceof Error ? error.message : "payload init failed";
+    const { neon } = await import("@neondatabase/serverless");
+    const sql = neon(databaseUri!);
+    const rows = await sql`SELECT count(*)::int AS n FROM users`;
+    userCount = (rows[0] as { n: number } | undefined)?.n;
+  } catch {
+    userCount = undefined;
   }
 
   return Response.json({
-    ok: payloadOk,
+    ok: true,
     runtime: { platform, vercelProject, nodeEnv: process.env.NODE_ENV },
     env,
     serverURL: getServerURL(),
     schemaReady: true,
-    payload: { ok: payloadOk, error: payloadError },
-    hint: payloadError,
+    userCount,
+    hint:
+      userCount === 0
+        ? "Таблицы есть, админ ещё не создан — откройте /admin (первый вход создаст пользователя)."
+        : undefined,
   });
 }

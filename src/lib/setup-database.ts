@@ -19,10 +19,6 @@ export function getDirectDatabaseUri(): string | undefined {
   return uri;
 }
 
-export function getDatabaseUri(): string | undefined {
-  return getDirectDatabaseUri();
-}
-
 const INITIAL_SCHEMA_SQL = `
 CREATE TYPE "public"."enum_products_currency" AS ENUM('ARS', 'USD');
 

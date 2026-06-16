@@ -54,7 +54,8 @@ export default buildConfig({
     ? postgresAdapter({
         pool: {
           connectionString: databaseUri,
-          max: 1,
+          // Payload keeps one client checked out on connect; max: 1 deadlocks queries.
+          max: isServerlessHosted() ? 3 : 5,
           idleTimeoutMillis: 0,
           connectionTimeoutMillis: 30000,
           ssl: databaseUri.includes("neon.tech")
