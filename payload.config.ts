@@ -57,7 +57,7 @@ export default buildConfig({
           connectionString: databaseUri,
           max: 1,
           idleTimeoutMillis: 0,
-          connectionTimeoutMillis: 60000,
+          connectionTimeoutMillis: 90000,
         },
         push: false,
         migrationDir: migrationsDir,

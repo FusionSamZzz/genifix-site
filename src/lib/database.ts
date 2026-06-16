@@ -15,15 +15,18 @@ export function getDatabaseUri(): string | undefined {
   const uri = process.env.DATABASE_URI || process.env.DATABASE_URL;
   if (!uri) return undefined;
 
-  // Direct connection for build/migrations; pooler for live serverless requests.
-  const isLiveServerless =
-    Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
-    (Boolean(process.env.VERCEL) && !isCiBuild());
-
-  if (!isLiveServerless) return uri;
   if (!uri.includes(".neon.tech") || uri.includes("-pooler.")) return uri;
 
-  return uri.replace(/(@ep-[^.]+)(\.)/, "$1-pooler$2");
+  // Neon pooler is reliable from Vercel; direct connections often time out during builds.
+  if (
+    process.env.VERCEL ||
+    process.env.NETLIFY ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME
+  ) {
+    return uri.replace(/(@ep-[^.]+)(\.)/, "$1-pooler$2");
+  }
+
+  return uri;
 }
 
 export function isServerlessHosted(): boolean {
