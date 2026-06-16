@@ -21,6 +21,8 @@ const nextConfig: NextConfig = {
     "@img/sharp-linux-x64",
     "@img/sharp-libvips-linux-x64",
     "pg",
+    "@neondatabase/serverless",
+    "ws",
   ],
   outputFileTracingIncludes: {
     "/": [

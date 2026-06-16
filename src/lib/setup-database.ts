@@ -1,6 +1,11 @@
-import pg from "pg";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 
-const { Client } = pg;
+const MIGRATION_NAME = "20260616_014745_initial";
+
+if (typeof WebSocket === "undefined") {
+  neonConfig.webSocketConstructor = ws;
+}
 
 /** Neon DDL requires a direct connection; pooler breaks migrations. */
 export function getDirectDatabaseUri(): string | undefined {
@@ -191,40 +196,41 @@ CREATE INDEX "site_settings_hero_image_idx" ON "site_settings" USING btree ("her
 CREATE INDEX "site_settings_presentation_video_idx" ON "site_settings" USING btree ("presentation_video_id");
 `;
 
-const MIGRATION_NAME = "20260616_014745_initial";
-
-async function withClient<T>(
-  fn: (client: pg.Client) => Promise<T>,
-): Promise<T> {
+async function withPool<T>(fn: (pool: Pool) => Promise<T>): Promise<T> {
   const connectionString = getDirectDatabaseUri();
   if (!connectionString) {
     throw new Error("DATABASE_URI is not configured");
   }
 
-  const client = new Client({
-    connectionString,
-    connectionTimeoutMillis: 30000,
-    ssl: connectionString.includes("neon.tech")
-      ? { rejectUnauthorized: false }
-      : undefined,
-  });
-
-  await client.connect();
+  const pool = new Pool({ connectionString });
   try {
-    return await fn(client);
+    await pool.query("SELECT 1");
+    return await fn(pool);
   } finally {
-    await client.end();
+    await pool.end();
   }
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error(`database timeout after ${ms}ms`)), ms);
+    }),
+  ]);
 }
 
 export async function isDatabaseReady(): Promise<boolean> {
   try {
-    return await withClient(async (client) => {
-      const result = await client.query<{ exists: string | null }>(
-        `SELECT to_regclass('public.users') AS exists`,
-      );
-      return result.rows[0]?.exists != null;
-    });
+    return await withTimeout(
+      withPool(async (pool) => {
+        const result = await pool.query<{ exists: string | null }>(
+          `SELECT to_regclass('public.users') AS exists`,
+        );
+        return result.rows[0]?.exists != null;
+      }),
+      12_000,
+    );
   } catch {
     return false;
   }
@@ -235,9 +241,9 @@ export async function ensureDatabaseSchema(): Promise<"created" | "exists"> {
     return "exists";
   }
 
-  await withClient(async (client) => {
-    await client.query(INITIAL_SCHEMA_SQL);
-    await client.query(
+  await withPool(async (pool) => {
+    await pool.query(INITIAL_SCHEMA_SQL);
+    await pool.query(
       `INSERT INTO payload_migrations (name, batch, created_at, updated_at)
        SELECT $1, 1, now(), now()
        WHERE NOT EXISTS (
@@ -248,4 +254,33 @@ export async function ensureDatabaseSchema(): Promise<"created" | "exists"> {
   });
 
   return "created";
+}
+
+export async function ensureDatabaseSchemaWithRetry(
+  attempts = 3,
+): Promise<"created" | "exists"> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await ensureDatabaseSchema();
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) {
+        await new Promise((resolve) => setTimeout(resolve, 4000 * attempt));
+      }
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("database setup failed");
+}
+
+export async function bootstrapPayloadAdmin(): Promise<boolean> {
+  const { default: config } = await import("@payload-config");
+  const { getPayload } = await import("payload");
+  const payload = await getPayload({ config });
+  const users = await payload.find({ collection: "users", limit: 1 });
+  return users.totalDocs > 0;
 }

@@ -43,7 +43,7 @@ export async function GET() {
       serverURL: getServerURL(),
       schemaReady: false,
       hint:
-        "Таблицы в Neon ещё не созданы. Один раз откройте /api/setup-db?secret=ВАШ_PAYLOAD_SECRET (значение из Vercel → PAYLOAD_SECRET).",
+        "Таблицы в Neon ещё не созданы. Один раз откройте https://genifix-site.vercel.app/setup и подождите до 1–2 минут.",
     });
   }
 
