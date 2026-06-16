@@ -64,7 +64,8 @@ export async function getSiteSettings(): Promise<{
       : null;
 
     return { heroImageUrl, presentationVideo };
-  } catch {
+  } catch (error) {
+    console.error("getSiteSettings failed:", error);
     return { heroImageUrl: null, presentationVideo: null };
   }
 }

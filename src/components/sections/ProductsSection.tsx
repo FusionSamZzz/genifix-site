@@ -18,16 +18,38 @@ type ProductsSectionProps = {
 export function ProductsSection({ products, presentationVideo }: ProductsSectionProps) {
   const [active, setActive] = useState<ProductItem | null>(null);
 
+  const sectionTitle =
+    products.length > 0
+      ? products.map((product) => product.name).join(" · ")
+      : "Productos GeniFix";
+
+  const sectionDescription =
+    products.length > 0
+      ? "Precios y fotos actualizados desde el panel de administración."
+      : "Agregue productos en /admin para mostrarlos aquí.";
+
   return (
     <section id="productos" className="bg-[var(--color-bg)] py-[var(--spacing-section)]">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <Reveal>
           <SectionHeading
             eyebrow="Productos"
-            title="GeniFix 8 mm y 12 mm"
-            description="Mismo cuerpo de plástico, diferente perno."
+            title={sectionTitle}
+            description={sectionDescription}
           />
         </Reveal>
+
+        {products.length === 0 ? (
+          <Reveal delay={0.08}>
+            <p className="mt-10 rounded-[24px] border border-dashed border-black/15 bg-white px-6 py-10 text-center text-[var(--color-muted)]">
+              No hay productos publicados todavía. Entre en{" "}
+              <a href="/admin" className="font-medium text-[var(--color-accent)] hover:underline">
+                Admin
+              </a>{" "}
+              y cree al menos uno.
+            </p>
+          </Reveal>
+        ) : null}
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {products.map((product, index) => (

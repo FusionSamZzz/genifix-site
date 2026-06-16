@@ -1,7 +1,7 @@
 import config from "@payload-config";
 import { getPayload } from "payload";
 
-import { FALLBACK_PRODUCTS, type FallbackProduct } from "./constants";
+import { type FallbackProduct } from "./constants";
 import { isCiBuild } from "./database";
 import { normalizeImageUrl } from "./utils";
 
@@ -38,7 +38,7 @@ function mapPayloadProduct(doc: Record<string, unknown>): ProductItem {
 }
 
 export async function getProducts(): Promise<ProductItem[]> {
-  if (isCiBuild()) return FALLBACK_PRODUCTS;
+  if (isCiBuild()) return [];
 
   try {
     const payload = await getPayload({ config });
@@ -49,10 +49,9 @@ export async function getProducts(): Promise<ProductItem[]> {
       limit: 50,
     });
 
-    if (docs.length === 0) return FALLBACK_PRODUCTS;
-
     return docs.map((doc) => mapPayloadProduct(doc as Record<string, unknown>));
-  } catch {
-    return FALLBACK_PRODUCTS;
+  } catch (error) {
+    console.error("getProducts failed:", error);
+    return [];
   }
 }
