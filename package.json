@@ -13,6 +13,7 @@
     "db:migrate": "payload migrate",
     "db:migrate:create": "payload migrate:create",
     "db:setup": "node scripts/setup-neon.mjs",
+    "db:bootstrap-admin": "node scripts/bootstrap-admin.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",

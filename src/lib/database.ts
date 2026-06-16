@@ -2,7 +2,7 @@
  * Database and hosting helpers for local dev, Vercel, Netlify, and Neon.
  */
 
-import { getDirectDatabaseUri } from "./setup-database";
+import { getDirectDatabaseUri } from "./setup-database.ts";
 
 /** Vercel/Netlify production build — not a live serverless request. */
 export function isCiBuild(): boolean {
@@ -13,8 +13,19 @@ export function isCiBuild(): boolean {
   );
 }
 
+/** Runtime URI for Payload — Neon pooler (fast on Vercel and locally). */
 export function getDatabaseUri(): string | undefined {
-  return getDirectDatabaseUri();
+  let uri = process.env.DATABASE_URI || process.env.DATABASE_URL;
+  if (!uri) return undefined;
+
+  uri = uri.replace(/[&?]channel_binding=[^&]+/g, "");
+  uri = uri.replace(/\?&/, "?").replace(/\?$/, "");
+
+  if (uri.includes(".neon.tech") && !uri.includes("-pooler.")) {
+    uri = uri.replace(/(@ep-[^.]+)(\.)/, "$1-pooler$2");
+  }
+
+  return uri;
 }
 
 export { getDirectDatabaseUri };

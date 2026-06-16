@@ -9,7 +9,6 @@ import { Media } from "./src/collections/Media.ts";
 import { Products } from "./src/collections/Products.ts";
 import { Users } from "./src/collections/Users.ts";
 import { SiteSettings } from "./src/globals/SiteSettings.ts";
-import { migrations } from "./src/migrations/index.ts";
 import {
   getDatabaseUri,
   getServerURL,
@@ -57,11 +56,13 @@ export default buildConfig({
           connectionString: databaseUri,
           max: 1,
           idleTimeoutMillis: 0,
-          connectionTimeoutMillis: 90000,
+          connectionTimeoutMillis: 30000,
+          ssl: databaseUri.includes("neon.tech")
+            ? { rejectUnauthorized: false }
+            : undefined,
         },
         push: false,
         migrationDir: migrationsDir,
-        prodMigrations: migrations,
       })
     : sqliteAdapter({
         client: {
@@ -77,7 +78,7 @@ export default buildConfig({
     },
   },
   onInit: async (payload) => {
-    if (isCiBuild()) return;
+    if (isCiBuild() || process.env.SKIP_ADMIN_BOOTSTRAP === "1") return;
 
     const email = process.env.ADMIN_EMAIL;
     const password = process.env.ADMIN_PASSWORD;

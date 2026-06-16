@@ -1,12 +1,11 @@
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
-import { neon } from "@neondatabase/serverless";
+const require = createRequire(import.meta.url);
+const { Client } = require("pg");
 
 function loadDatabaseUri() {
-  if (process.env.DATABASE_URI) return process.env.DATABASE_URI;
-  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
-
   try {
     const envPath = resolve(process.cwd(), ".env.local");
     const content = readFileSync(envPath, "utf8");
@@ -24,6 +23,9 @@ function loadDatabaseUri() {
   } catch {
     // .env.local missing
   }
+
+  if (process.env.DATABASE_URI) return process.env.DATABASE_URI;
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
 
   return undefined;
 }
@@ -56,17 +58,47 @@ async function main() {
 
   const sqlPath = resolve(process.cwd(), "public", "neon-schema.sql");
   const schemaSql = readFileSync(sqlPath, "utf8");
-  const sql = neon(normalizeUri(rawUri));
+  const client = new Client({
+    connectionString: normalizeUri(rawUri),
+    connectionTimeoutMillis: 30000,
+    ssl: rawUri.includes("neon.tech") ? { rejectUnauthorized: false } : undefined,
+  });
 
   console.log("Подключение к Neon…");
-  await sql`SELECT 1`;
-  console.log("Создание таблиц…");
-  await sql.query(schemaSql);
-  console.log("Готово! Таблицы созданы.");
-  console.log("Откройте: https://genifix-site.vercel.app/admin");
+  await client.connect();
+  try {
+    const ready = await client.query(
+      `SELECT to_regclass('public.users') AS exists`,
+    );
+    if (ready.rows[0]?.exists) {
+      console.log("Готово! Таблицы уже существуют.");
+      console.log("Откройте: https://genifix-site.vercel.app/admin");
+      return;
+    }
+
+    const partial = await client.query(
+      `SELECT 1 FROM pg_type WHERE typname = 'enum_products_currency' LIMIT 1`,
+    );
+    if (partial.rowCount > 0) {
+      console.log("Сброс незавершённой схемы…");
+      await client.query(`
+        DROP SCHEMA public CASCADE;
+        CREATE SCHEMA public;
+        GRANT ALL ON SCHEMA public TO neondb_owner;
+        GRANT ALL ON SCHEMA public TO public;
+      `);
+    }
+
+    console.log("Создание таблиц…");
+    await client.query(schemaSql);
+    console.log("Готово! Таблицы созданы.");
+    console.log("Откройте: https://genifix-site.vercel.app/admin");
+  } finally {
+    await client.end();
+  }
 }
 
 main().catch((error) => {
-  console.error("Ошибка:", error instanceof Error ? error.message : error);
+  console.error("Ошибка:", error);
   process.exit(1);
 });

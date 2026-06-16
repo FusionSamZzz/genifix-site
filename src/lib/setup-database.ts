@@ -196,8 +196,23 @@ CREATE INDEX "site_settings_hero_image_idx" ON "site_settings" USING btree ("her
 CREATE INDEX "site_settings_presentation_video_idx" ON "site_settings" USING btree ("presentation_video_id");
 `;
 
+function getCheckDatabaseUri(): string | undefined {
+  const uri = process.env.DATABASE_URI || process.env.DATABASE_URL;
+  if (!uri) return undefined;
+
+  if (
+    process.env.VERCEL ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    process.env.NETLIFY
+  ) {
+    return uri;
+  }
+
+  return getDirectDatabaseUri();
+}
+
 function getNeonSql() {
-  const connectionString = getDirectDatabaseUri();
+  const connectionString = getCheckDatabaseUri();
   if (!connectionString) {
     throw new Error("DATABASE_URI is not configured");
   }

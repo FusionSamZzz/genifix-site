@@ -2,10 +2,7 @@ import config from "@payload-config";
 import "@payloadcms/next/css";
 import { RootLayout, handleServerFunctions } from "@payloadcms/next/layouts";
 import type { ServerFunctionClient } from "payload";
-import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-
-import { isDatabaseReady } from "@/lib/setup-database";
 
 import { importMap } from "./admin/importMap.js";
 
@@ -25,11 +22,6 @@ const serverFunction: ServerFunctionClient = async function (args) {
 };
 
 export default async function PayloadLayout({ children }: Args) {
-  const ready = await isDatabaseReady();
-  if (!ready) {
-    redirect("/setup");
-  }
-
   return (
     <RootLayout
       config={config}
