@@ -1,7 +1,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 
-import { isServerlessHosted } from "./database";
+import { isServerlessHosted } from "./database.ts";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);

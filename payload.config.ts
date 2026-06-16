@@ -5,22 +5,24 @@ import { sqliteAdapter } from "@payloadcms/db-sqlite";
 import { buildConfig } from "payload";
 import sharp from "sharp";
 
-import { Media } from "./collections/Media";
-import { Products } from "./collections/Products";
-import { Users } from "./collections/Users";
-import { SiteSettings } from "./globals/SiteSettings";
+import { Media } from "./src/collections/Media.ts";
+import { Products } from "./src/collections/Products.ts";
+import { Users } from "./src/collections/Users.ts";
+import { SiteSettings } from "./src/globals/SiteSettings.ts";
+import { migrations } from "./src/migrations/index.ts";
 import {
   getDatabaseUri,
   getServerURL,
   isCiBuild,
   isServerlessHosted,
-} from "./lib/database";
+} from "./src/lib/database.ts";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
+const srcDir = path.resolve(dirname, "src");
 
 const databaseUri = getDatabaseUri();
-const pushSchema = process.env.PAYLOAD_PUSH === "true";
+const migrationsDir = path.resolve(srcDir, "migrations");
 
 if (isServerlessHosted() && !databaseUri) {
   console.error(
@@ -38,7 +40,7 @@ export default buildConfig({
     importMap: {
       autoGenerate: true,
       importMapFile: path.resolve(
-        dirname,
+        srcDir,
         "app/(payload)/admin/importMap.js",
       ),
     },
@@ -47,7 +49,7 @@ export default buildConfig({
   globals: [SiteSettings],
   secret: process.env.PAYLOAD_SECRET || "dev-secret-change-in-production",
   typescript: {
-    outputFile: path.resolve(dirname, "payload-types.ts"),
+    outputFile: path.resolve(srcDir, "payload-types.ts"),
   },
   db: databaseUri
     ? postgresAdapter({
@@ -57,13 +59,16 @@ export default buildConfig({
           idleTimeoutMillis: 0,
           connectionTimeoutMillis: 60000,
         },
-        push: pushSchema,
+        push: false,
+        migrationDir: migrationsDir,
+        prodMigrations: migrations,
       })
     : sqliteAdapter({
         client: {
-          url: `file:${path.resolve(dirname, "../data.db")}`,
+          url: `file:${path.resolve(dirname, "data.db")}`,
         },
         push: true,
+        migrationDir: migrationsDir,
       }),
   sharp,
   upload: {
@@ -72,7 +77,6 @@ export default buildConfig({
     },
   },
   onInit: async (payload) => {
-    // Neon may be cold during Vercel build — create admin on first live request.
     if (isCiBuild()) return;
 
     const email = process.env.ADMIN_EMAIL;

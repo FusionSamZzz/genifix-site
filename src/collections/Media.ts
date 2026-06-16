@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 
-import { getMediaStaticDir } from "../lib/media";
+import { getMediaStaticDir } from "../lib/media.ts";
 
 export const Media: CollectionConfig = {
   slug: "media",
