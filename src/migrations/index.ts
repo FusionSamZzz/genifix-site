@@ -1,4 +1,4 @@
-import * as migration_20260616_014745_initial from './20260616_014745_initial';
+import * as migration_20260616_014745_initial from "./20260616_014745_initial.ts";
 
 export const migrations = [
   {
