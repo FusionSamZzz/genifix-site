@@ -2,6 +2,8 @@
  * Database and hosting helpers for local dev, Vercel, Netlify, and Neon.
  */
 
+import { getDirectDatabaseUri } from "./setup-database";
+
 /** Vercel/Netlify production build — not a live serverless request. */
 export function isCiBuild(): boolean {
   return (
@@ -12,22 +14,10 @@ export function isCiBuild(): boolean {
 }
 
 export function getDatabaseUri(): string | undefined {
-  const uri = process.env.DATABASE_URI || process.env.DATABASE_URL;
-  if (!uri) return undefined;
-
-  if (!uri.includes(".neon.tech") || uri.includes("-pooler.")) return uri;
-
-  // Neon pooler is reliable from Vercel; direct connections often time out during builds.
-  if (
-    process.env.VERCEL ||
-    process.env.NETLIFY ||
-    process.env.AWS_LAMBDA_FUNCTION_NAME
-  ) {
-    return uri.replace(/(@ep-[^.]+)(\.)/, "$1-pooler$2");
-  }
-
-  return uri;
+  return getDirectDatabaseUri();
 }
+
+export { getDirectDatabaseUri };
 
 export function isServerlessHosted(): boolean {
   return Boolean(

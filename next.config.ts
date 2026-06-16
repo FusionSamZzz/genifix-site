@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
     "sharp",
     "@img/sharp-linux-x64",
     "@img/sharp-libvips-linux-x64",
+    "pg",
   ],
   outputFileTracingIncludes: {
     "/": [

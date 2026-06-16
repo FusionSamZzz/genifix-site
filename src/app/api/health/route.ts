@@ -4,9 +4,10 @@ import {
   getServerURL,
   isServerlessHosted,
 } from "@/lib/database";
+import { isDatabaseReady } from "@/lib/setup-database";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 30;
 
 export async function GET() {
   const databaseUri = getDatabaseUri();
@@ -32,6 +33,20 @@ export async function GET() {
     });
   }
 
+  const schemaReady = await isDatabaseReady();
+
+  if (!schemaReady) {
+    return Response.json({
+      ok: false,
+      runtime: { platform, vercelProject, nodeEnv: process.env.NODE_ENV },
+      env,
+      serverURL: getServerURL(),
+      schemaReady: false,
+      hint:
+        "Таблицы в Neon ещё не созданы. Один раз откройте /api/setup-db?secret=ВАШ_PAYLOAD_SECRET (значение из Vercel → PAYLOAD_SECRET).",
+    });
+  }
+
   let payloadOk = false;
   let payloadError: string | undefined;
 
@@ -52,6 +67,7 @@ export async function GET() {
     runtime: { platform, vercelProject, nodeEnv: process.env.NODE_ENV },
     env,
     serverURL: getServerURL(),
+    schemaReady: true,
     payload: { ok: payloadOk, error: payloadError },
     hint: payloadError,
   });
