@@ -1,29 +1,3 @@
-import { neon } from "@neondatabase/serverless";
-
-const MIGRATION_NAME = "20260616_014745_initial";
-
-/** Neon DDL requires a direct connection; pooler breaks migrations. */
-export function getDirectDatabaseUri(): string | undefined {
-  let uri = process.env.DATABASE_URI || process.env.DATABASE_URL;
-  if (!uri) return undefined;
-
-  if (uri.includes("-pooler.")) {
-    uri = uri.replace("-pooler.", ".");
-  }
-
-  if (uri.includes("neon.tech") && !uri.includes("sslmode=")) {
-    const separator = uri.includes("?") ? "&" : "?";
-    uri = `${uri}${separator}sslmode=require`;
-  }
-
-  return uri;
-}
-
-export function getDatabaseUri(): string | undefined {
-  return getDirectDatabaseUri();
-}
-
-const INITIAL_SCHEMA_SQL = `
 CREATE TYPE "public"."enum_products_currency" AS ENUM('ARS', 'USD');
 
 CREATE TABLE "users_sessions" (
@@ -194,87 +168,10 @@ CREATE INDEX "payload_migrations_updated_at_idx" ON "payload_migrations" USING b
 CREATE INDEX "payload_migrations_created_at_idx" ON "payload_migrations" USING btree ("created_at");
 CREATE INDEX "site_settings_hero_image_idx" ON "site_settings" USING btree ("hero_image_id");
 CREATE INDEX "site_settings_presentation_video_idx" ON "site_settings" USING btree ("presentation_video_id");
-`;
 
-function getNeonSql() {
-  const connectionString = getDirectDatabaseUri();
-  if (!connectionString) {
-    throw new Error("DATABASE_URI is not configured");
-  }
-  return neon(connectionString);
-}
+INSERT INTO payload_migrations (name, batch, created_at, updated_at)
+SELECT '20260616_014745_initial', 1, now(), now()
+WHERE NOT EXISTS (
+  SELECT 1 FROM payload_migrations WHERE name = '20260616_014745_initial'
+);
 
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => {
-      setTimeout(() => reject(new Error(`database timeout after ${ms}ms`)), ms);
-    }),
-  ]);
-}
-
-export async function isDatabaseReady(): Promise<boolean> {
-  try {
-    return await withTimeout(
-      (async () => {
-        const sql = getNeonSql();
-        const rows = await sql`SELECT to_regclass('public.users') AS exists`;
-        const row = rows[0] as { exists: string | null } | undefined;
-        return row?.exists != null;
-      })(),
-      10_000,
-    );
-  } catch {
-    return false;
-  }
-}
-
-export async function ensureDatabaseSchema(): Promise<"created" | "exists"> {
-  if (await isDatabaseReady()) {
-    return "exists";
-  }
-
-  const sql = getNeonSql();
-
-  await sql`SELECT 1`;
-  await sql.query(INITIAL_SCHEMA_SQL);
-  await sql.query(
-    `INSERT INTO payload_migrations (name, batch, created_at, updated_at)
-     SELECT $1, 1, now(), now()
-     WHERE NOT EXISTS (
-       SELECT 1 FROM payload_migrations WHERE name = $1
-     )`,
-    [MIGRATION_NAME],
-  );
-
-  return "created";
-}
-
-export async function ensureDatabaseSchemaWithRetry(
-  attempts = 2,
-): Promise<"created" | "exists"> {
-  let lastError: unknown;
-
-  for (let attempt = 1; attempt <= attempts; attempt++) {
-    try {
-      return await withTimeout(ensureDatabaseSchema(), 45_000);
-    } catch (error) {
-      lastError = error;
-      if (attempt < attempts) {
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-      }
-    }
-  }
-
-  throw lastError instanceof Error
-    ? lastError
-    : new Error("database setup failed");
-}
-
-export async function bootstrapPayloadAdmin(): Promise<boolean> {
-  const { default: config } = await import("@payload-config");
-  const { getPayload } = await import("payload");
-  const payload = await getPayload({ config });
-  const users = await payload.find({ collection: "users", limit: 1 });
-  return users.totalDocs > 0;
-}
