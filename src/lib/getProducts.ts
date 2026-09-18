@@ -1,8 +1,6 @@
-import config from "@payload-config";
-import { getPayload } from "payload";
-
 import { type FallbackProduct } from "./constants";
 import { isCiBuild } from "./database";
+import { payloadFetch } from "./payload-api";
 import { normalizeImageUrl } from "./utils";
 
 export type ProductItem = FallbackProduct;
@@ -41,15 +39,11 @@ export async function getProducts(): Promise<ProductItem[]> {
   if (isCiBuild()) return [];
 
   try {
-    const payload = await getPayload({ config });
-    const { docs } = await payload.find({
-      collection: "products",
-      sort: "sortOrder",
-      depth: 1,
-      limit: 50,
-    });
+    const data = await payloadFetch<{ docs: Record<string, unknown>[] }>(
+      "/api/products?limit=50&depth=1&sort=sortOrder",
+    );
 
-    return docs.map((doc) => mapPayloadProduct(doc as Record<string, unknown>));
+    return data.docs.map((doc) => mapPayloadProduct(doc));
   } catch (error) {
     console.error("getProducts failed:", error);
     return [];

@@ -1,7 +1,5 @@
-import config from "@payload-config";
-import { getPayload } from "payload";
-
 import { isCiBuild } from "./database";
+import { payloadFetch } from "./payload-api";
 import { normalizeImageUrl } from "./utils";
 
 export type PresentationVideo = {
@@ -28,11 +26,9 @@ export async function getSiteSettings(): Promise<{
   }
 
   try {
-    const payload = await getPayload({ config });
-    const settings = await payload.findGlobal({
-      slug: "site-settings",
-      depth: 1,
-    });
+    const settings = await payloadFetch<Record<string, unknown>>(
+      "/api/globals/site-settings?depth=1",
+    );
 
     const heroImageUrl = getMediaUrl(
       settings.heroImage as

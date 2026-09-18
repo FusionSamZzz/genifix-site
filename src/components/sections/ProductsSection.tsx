@@ -25,7 +25,7 @@ export function ProductsSection({ products, presentationVideo }: ProductsSection
 
   const sectionDescription =
     products.length > 0
-      ? "Precios y fotos actualizados desde el panel de administración."
+      ? "Elija el modelo según el espesor de su tablero."
       : "Agregue productos en /admin para mostrarlos aquí.";
 
   return (
